@@ -1,0 +1,15 @@
+/* src/index.css */
+@import "tailwindcss";
+
+/* ✅ hard-kill ANY horizontal overflow */
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  background: #fbfbfa;
+}
