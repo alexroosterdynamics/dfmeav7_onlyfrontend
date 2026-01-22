@@ -13,8 +13,12 @@ export function DFMEAProvider({ children }) {
   return <DFMEAContext.Provider value={value}>{children}</DFMEAContext.Provider>;
 }
 
+
+
 export function useDFMEA() {
   const ctx = useContext(DFMEAContext);
   if (!ctx) throw new Error("useDFMEA must be used inside DFMEAProvider");
   return ctx;
 }
+
+

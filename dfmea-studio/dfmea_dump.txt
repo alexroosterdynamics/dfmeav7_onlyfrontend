@@ -1,0 +1,586 @@
+DFMEA STUDIO SOURCE DUMP
+Generated: 2026-01-22 13:03:14
+Root: D:\dfmeav7_onlyfrontend\dfmea-studio
+
+Included paths:
+ - src\components
+ - src\contexts
+ - src\data
+ - src\App.jsx
+
+Files:
+ - src\App.jsx
+ - src\components\AiDock.jsx
+ - src\components\RequirementsViewport.jsx
+ - src\components\Sidebar.jsx
+ - src\components\TopNav.jsx
+ - src\components\Workspace.jsx
+ - src\contexts\DFMEAContext.jsx
+ - src\data\requirements.json
+
+==========================================================================================
+FILE: src\App.jsx
+==========================================================================================
+import TopNav from "./components/TopNav";
+import Sidebar from "./components/Sidebar";
+import Workspace from "./components/Workspace";
+
+export default function App() {
+  return (
+    <div className="h-screen bg-[#fbfbfa] text-zinc-900 antialiased">
+      {/* mobile lock */}
+      <div className="lg:hidden h-screen flex items-center justify-center p-8">
+        <div className="max-w-md text-center">
+          <div className="text-xl font-semibold tracking-tight">Desktop required</div>
+          <div className="mt-2 text-sm text-zinc-600">
+            This mock UI is designed strictly for desktop layouts.
+          </div>
+        </div>
+      </div>
+
+      {/* desktop */}
+      <div className="hidden lg:flex h-full flex-col overflow-hidden">
+        <TopNav />
+        <div className="flex flex-1 overflow-hidden">
+          <Sidebar />
+          <Workspace />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+==========================================================================================
+FILE: src\components\AiDock.jsx
+==========================================================================================
+export default function AiDock() {
+  return (
+    <div className="rounded-2xl border border-zinc-200/80 bg-white shadow-[0_1px_0_rgba(0,0,0,0.05),0_20px_50px_rgba(0,0,0,0.10)] overflow-hidden">
+      <div className="px-4 py-3 border-b border-zinc-200/70 bg-[#fbfbfa]">
+        <div className="text-[12px] font-semibold tracking-tight text-zinc-900">
+          AI assistant (mock)
+        </div>
+        <div className="text-[11px] text-zinc-500">No functionality — visual only</div>
+      </div>
+
+      <div className="p-4">
+        <div className="text-[12px] text-zinc-700 leading-snug">
+          This dock is pinned to the bottom like the original UI. No actions are wired.
+        </div>
+
+        <div className="mt-3 flex items-center gap-2">
+          <button
+            disabled
+            className="text-[12px] px-3 py-2 rounded-xl bg-zinc-900 text-white opacity-70 cursor-not-allowed"
+          >
+            Generate
+          </button>
+          <button
+            disabled
+            className="text-[12px] px-3 py-2 rounded-xl bg-white border border-zinc-200/80 text-zinc-700 opacity-70 cursor-not-allowed"
+          >
+            Ask question
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+==========================================================================================
+FILE: src\components\RequirementsViewport.jsx
+==========================================================================================
+import { useState } from "react";
+import { Cpu, Zap, Wrench, Paperclip, CheckCircle2, AlertTriangle, LayoutGrid, List, Minus, Plus } from "lucide-react";
+
+const MOCK = {
+  content: {
+    projectName: "DFMEA Project",
+    requirements: [
+      { id: "REQ-001", text: "System shall boot within 2.5s at 12V ±10%", domainCategory: "Software", reqType: "Performance", priority: "High", ownerRole: "System", ownerName: "Alice", files: [1, 2], isComplete: true, flagged: false },
+      { id: "REQ-002", text: "ECU shall operate -40°C to 85°C ambient", domainCategory: "Electrical", reqType: "Environmental", priority: "Critical", ownerRole: "Hardware", ownerName: "Bob", files: [], isComplete: false, flagged: true },
+      { id: "REQ-003", text: "CAN bus latency < 10ms for critical msgs", domainCategory: "Software", reqType: "Functional", priority: "High", ownerRole: "Firmware", ownerName: "Carol", files: [1], isComplete: true, flagged: false },
+      { id: "REQ-004", text: "Connector shall withstand 50N pull force", domainCategory: "Mechanical", reqType: "Structural", priority: "Medium", ownerRole: "Mechanical", ownerName: "Dave", files: [], isComplete: false, flagged: false },
+      { id: "REQ-005", text: "Power consumption < 2.5W in sleep mode", domainCategory: "Electrical", reqType: "Performance", priority: "High", ownerRole: "Power", ownerName: "Eve", files: [1, 2, 3], isComplete: true, flagged: false },
+    ]
+  }
+};
+
+const ICONS = { Software: Cpu, Electrical: Zap, Mechanical: Wrench };
+const frozen = r => r.isComplete && !r.flagged;
+
+const Pill = ({ tone = "neutral", children }) => (
+  <span className={`text-[11px] px-2 py-1 rounded-full border tracking-tight ${
+    tone === "bad" ? "bg-amber-50 border-amber-200/70 text-amber-900" :
+    tone === "good" ? "bg-emerald-50 border-emerald-200/70 text-emerald-900" :
+    "bg-[#fbfbfa] border-zinc-200/80 text-zinc-700"
+  }`}>{children}</span>
+);
+
+const Btn = ({ active, disabled, onClick, children }) => (
+  <button onClick={onClick} disabled={disabled} className={`inline-flex items-center gap-1 text-[11px] px-2.5 py-1.5 rounded-xl border tracking-tight transition-colors ${
+    active ? "bg-zinc-900 text-white border-zinc-900" :
+    disabled ? "bg-white border-zinc-200/60 text-zinc-300 cursor-not-allowed" :
+    "bg-white border-zinc-200/80 text-zinc-700 hover:bg-zinc-100"
+  }`}>{children}</button>
+);
+
+export default function RequirementsViewport({ data = MOCK }) {
+  const { projectName, requirements } = data.content;
+  const [view, setView] = useState("cards");
+  const [size, setSize] = useState("md");
+  const [filter, setFilter] = useState("all");
+
+  const total = requirements.length;
+  const froz = requirements.filter(frozen).length;
+  const flag = requirements.filter(r => r.flagged).length;
+  const stats = { total, frozen: froz, flagged: flag, unfrozen: total - froz };
+
+  const map = { Software: [], Electrical: [], Mechanical: [] };
+  requirements.forEach(r => map[r.domainCategory].push(r));
+  
+  const meta = Object.keys(map).map(d => ({
+    d,
+    unfrozen: map[d].filter(x => !frozen(x)).length,
+    flagged: map[d].filter(x => x.flagged).length,
+    total: map[d].length
+  }));
+  
+  const order = meta.sort((a, b) => b.unfrozen - a.unfrozen || b.flagged - a.flagged || b.total - a.total).map(x => x.d);
+  
+  order.forEach(d => map[d].sort((a, b) => (frozen(a) ? 0 : 1) - (frozen(b) ? 0 : 1) || (b.flagged ? 1 : 0) - (a.flagged ? 1 : 0)));
+  
+  const buckets = { map, order };
+
+  const filtered = {};
+  buckets.order.forEach(d => {
+    filtered[d] = filter === "all" ? buckets.map[d] :
+             filter === "frozen" ? buckets.map[d].filter(frozen) :
+             buckets.map[d].filter(r => !frozen(r));
+  });
+
+  const grid = size === "xs" ? "grid-cols-5 gap-3" : size === "sm" ? "grid-cols-4 gap-3" : size === "lg" ? "grid-cols-2 gap-4" : "grid-cols-3 gap-4";
+  const pad = size === "xs" || size === "sm" ? "p-3" : size === "lg" ? "p-5" : "p-4";
+
+  return (
+    <div className="pb-24">
+      <div className="max-w-6xl mx-auto px-10 pt-12 pb-5">
+        <div className="flex items-start justify-between gap-6">
+          <div>
+            <div className="text-[40px] leading-[1.12] font-semibold tracking-tight">Requirements</div>
+            <div className="mt-2 text-[13px] text-zinc-600">Project • <span className="text-zinc-900 font-medium">{projectName}</span></div>
+          </div>
+          <div className="pt-2 flex items-center gap-2">
+            <Pill tone={stats.frozen === stats.total ? "good" : "bad"}>
+              <span className="inline-flex items-center gap-1.5">
+                {stats.frozen === stats.total ? <CheckCircle2 size={12} /> : <AlertTriangle size={12} />}
+                {stats.frozen}/{stats.total} frozen
+              </span>
+            </Pill>
+            <Pill tone={stats.flagged ? "bad" : "good"}>
+              <span className="inline-flex items-center gap-1.5"><AlertTriangle size={12} /> {stats.flagged} flagged</span>
+            </Pill>
+            <div className="ml-2 flex gap-1.5">
+              {[["all", "All"], ["unfrozen", "Unfrozen"], ["frozen", "Frozen"]].map(([m, l]) => (
+                <Btn key={m} active={filter === m} onClick={() => setFilter(m)}>{l}</Btn>
+              ))}
+            </div>
+            <div className="ml-2 flex gap-1.5">
+              <Btn active={view === "cards"} onClick={() => setView("cards")}><LayoutGrid size={14} /> Cards</Btn>
+              <Btn active={view === "list"} onClick={() => setView("list")}><List size={14} /> List</Btn>
+              <div className="w-px h-6 bg-zinc-200/80 mx-1" />
+              <Btn onClick={() => setSize(s => s === "lg" ? "md" : s === "md" ? "sm" : "xs")} disabled={view !== "cards"}><Minus size={14} /></Btn>
+              <Btn onClick={() => setSize(s => s === "xs" ? "sm" : s === "sm" ? "md" : "lg")} disabled={view !== "cards"}><Plus size={14} /></Btn>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-10 space-y-5">
+        {buckets.order.map(d => {
+          const list = filtered[d];
+          if (!list.length) return null;
+          const full = buckets.map[d];
+          const Icon = ICONS[d];
+          const uf = full.filter(r => !frozen(r)).length;
+          const fg = full.filter(r => r.flagged).length;
+
+          return (
+            <div key={d} className="rounded-xl border border-zinc-200/80 bg-white shadow-[0_1px_0_rgba(0,0,0,0.05),0_14px_40px_rgba(0,0,0,0.06)]">
+              <div className="px-4 py-3 border-b border-zinc-200/70 bg-[#fbfbfa] flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-xl border border-zinc-200/80 bg-white grid place-items-center">
+                    <Icon size={16} strokeWidth={1.8} className="text-zinc-800" />
+                  </div>
+                  <div>
+                    <div className="text-[12px] font-semibold text-zinc-900">{d}</div>
+                    <div className="text-[11px] text-zinc-500">{uf} unfrozen • {fg} flagged • {full.length} total</div>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Pill tone={uf ? "bad" : "good"}>{uf} unfrozen</Pill>
+                  <Pill tone={fg ? "bad" : "good"}>{fg} flagged</Pill>
+                </div>
+              </div>
+
+              {view === "cards" ? (
+                <div className={`p-4 grid ${grid}`}>
+                  {list.map(r => (
+                    <div key={r.id} className={`rounded-2xl border border-zinc-200/80 bg-white shadow-[0_1px_0_rgba(0,0,0,0.05),0_10px_24px_rgba(0,0,0,0.06)] ${pad}`}>
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <div className="text-[11px] text-zinc-500">{r.id}</div>
+                            {frozen(r) ? <CheckCircle2 size={14} className="text-zinc-900" /> : 
+                             r.flagged ? <AlertTriangle size={14} className="text-zinc-900" /> :
+                             <AlertTriangle size={14} className="text-zinc-600" />}
+                          </div>
+                          <div className="mt-1 text-[13px] font-semibold text-zinc-900 line-clamp-2">{r.text}</div>
+                        </div>
+                      </div>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <Pill><span className="inline-flex items-center gap-1.5"><div className="h-1.5 w-1.5 rounded-full bg-zinc-900/70" />{r.reqType}</span></Pill>
+                        <Pill>{r.priority}</Pill>
+                        <Pill tone={frozen(r) ? "good" : "neutral"}>{frozen(r) ? "Frozen" : r.flagged ? "Flagged" : "Incomplete"}</Pill>
+                      </div>
+                      <div className="mt-3 flex items-center justify-between text-[11px] text-zinc-500">
+                        <div>{r.ownerRole} • {r.ownerName}</div>
+                        <div className="flex items-center gap-2"><Paperclip size={14} strokeWidth={1.7} />{r.files.length}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div>
+                  <div className="grid grid-cols-12 text-[11px] font-medium text-zinc-500 bg-[#fbfbfa] border-b border-zinc-200/70">
+                    <div className="col-span-2 px-5 py-3">ID</div>
+                    <div className="col-span-5 px-5 py-3">Requirement</div>
+                    <div className="col-span-2 px-5 py-3">Owner</div>
+                    <div className="col-span-2 px-5 py-3">Status</div>
+                    <div className="col-span-1 px-5 py-3 text-right">Files</div>
+                  </div>
+                  {list.map(r => (
+                    <div key={r.id} className="grid grid-cols-12 text-[13px] border-b last:border-b-0 border-zinc-200/60 hover:bg-[#fbfbfa] transition-colors">
+                      <div className="col-span-2 px-5 py-3 text-zinc-600 flex items-center gap-2">
+                        <span>{r.id}</span>
+                        {frozen(r) ? <CheckCircle2 size={14} className="text-zinc-900" /> : 
+                         r.flagged ? <AlertTriangle size={14} className="text-zinc-900" /> :
+                         <AlertTriangle size={14} className="text-zinc-600" />}
+                      </div>
+                      <div className="col-span-5 px-5 py-3">
+                        <div className="text-zinc-900 leading-snug">{r.text}</div>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <Pill><span className="inline-flex items-center gap-1.5"><div className="h-1.5 w-1.5 rounded-full bg-zinc-900/70" />{r.reqType}</span></Pill>
+                          <Pill tone={frozen(r) ? "good" : r.flagged ? "bad" : "neutral"}>{frozen(r) ? "Frozen" : r.flagged ? "Flagged" : "Incomplete"}</Pill>
+                        </div>
+                      </div>
+                      <div className="col-span-2 px-5 py-3 text-zinc-600">
+                        <div className="text-zinc-900">{r.ownerRole}</div>
+                        <div className="mt-0.5 text-[11px] text-zinc-500">Added by {r.ownerName}</div>
+                      </div>
+                      <div className="col-span-2 px-5 py-3 text-zinc-600">
+                        <div className="text-zinc-900">{r.priority}</div>
+                        <div className="mt-0.5 text-[11px] text-zinc-500">{frozen(r) ? "Frozen" : r.flagged ? "Flagged" : "Incomplete"}</div>
+                      </div>
+                      <div className="col-span-1 px-5 py-3 text-right text-zinc-600 flex items-center justify-end gap-2">
+                        <Paperclip size={14} strokeWidth={1.7} className="text-zinc-500" />{r.files.length}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+==========================================================================================
+FILE: src\components\Sidebar.jsx
+==========================================================================================
+"use client";
+import { useState } from "react";
+import { Home, CalendarDays, Sparkles, Inbox, Settings, Trash2, Search, ChevronDown, GitBranch, Plus, ClipboardList } from "lucide-react";
+import { useDFMEA } from "../contexts/DFMEAContext";
+
+const Item = ({ icon: Icon, label, active, onClick, right, sub }) => (
+  <div onClick={onClick} className={`group flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer transition-colors hover:bg-zinc-200/40 text-zinc-700 ${sub ? "pl-7 text-[12px]" : "text-[13px] font-medium"} ${active ? "bg-zinc-200/50 text-zinc-900" : ""}`}>
+    {Icon && <Icon size={16} strokeWidth={1.7} />}
+    <span className="flex-1 truncate">{label}</span>
+    {right}
+  </div>
+);
+
+export default function Sidebar({ tasksTitle, tasks = [], onOpenRequirementsManager, onOpenTasksTimeline }) {
+  const { activeTab, setActiveTab, workflows, selectedWorkflowId, setSelectedWorkflowId, createWorkflow, deleteWorkflow } = useDFMEA();
+  const [open, setOpen] = useState({ workflows: false, inbox: false });
+
+  const Chev = ({ is }) => <ChevronDown size={16} className={`text-zinc-500 transition-transform ${is ? "" : "-rotate-90"}`} />;
+
+  return (
+    <aside className="w-[280px] h-full bg-[#f5f5f3] border-r border-zinc-200/70 flex flex-col p-3 gap-2">
+      <div className="flex items-center gap-3 px-2 py-2 rounded-md hover:bg-zinc-200/40 transition-colors cursor-pointer">
+        <div className="h-8 w-8 rounded-xl bg-white border border-zinc-200/80 flex items-center justify-center text-xs font-bold text-zinc-800">IA</div>
+        <div className="min-w-0 leading-tight">
+          <div className="text-[13px] font-semibold text-zinc-900 truncate">Mechanical Engineer</div>
+          <div className="text-[11px] text-zinc-500 truncate">Workspace • mock</div>
+        </div>
+      </div>
+
+      <div className="px-2">
+        <div className="rounded-md bg-white border border-zinc-200/80 px-2.5 py-2 flex items-center gap-2">
+          <Search size={16} className="text-zinc-400" />
+          <input className="w-full text-[13px] outline-none bg-transparent placeholder:text-zinc-400" placeholder="Search" disabled />
+        </div>
+      </div>
+
+      <nav className="flex-1 overflow-y-auto space-y-0.5 px-2">
+        <Item icon={Home} label="Home" active={activeTab === "home"} onClick={() => setActiveTab("home")} />
+        <Item icon={CalendarDays} label="Meetings" active={activeTab === "meetings"} onClick={() => setActiveTab("meetings")} />
+        <Item icon={Sparkles} label="Notion AI" active={activeTab === "ai"} onClick={() => setActiveTab("ai")} />
+        
+        <Item icon={Inbox} label="Inbox" active={open.inbox} onClick={() => setOpen(p => ({ ...p, inbox: !p.inbox }))} right={<Chev is={open.inbox} />} />
+        {open.inbox && <Item sub label="Manager view" active={activeTab === "requirementsManager"} onClick={onOpenRequirementsManager} right={<span className="text-[10px] px-1.5 py-0.5 rounded-full border bg-white text-zinc-500">Read-only</span>} />}
+
+        <Item icon={GitBranch} label="Workflows" active={open.workflows} onClick={() => setOpen(p => ({ ...p, workflows: !p.workflows }))} right={<Chev is={open.workflows} />} />
+        {open.workflows && (
+          <div className="space-y-0.5">
+            {workflows.map(w => (
+              <Item key={w.id} sub label={w.title || "Untitled"} active={selectedWorkflowId === w.id && activeTab === "workflows"} onClick={() => { setActiveTab("workflows"); setSelectedWorkflowId(w.id); }}
+                right={<Trash2 size={14} className="opacity-0 group-hover:opacity-100 hover:text-red-600 transition-opacity" onClick={e => { e.stopPropagation(); if(confirm('Delete?')) deleteWorkflow(w.id); }} />}
+              />
+            ))}
+            <button onClick={createWorkflow} className="w-full pl-7 py-1.5 flex items-center gap-2 text-[12px] text-zinc-500 hover:bg-zinc-200/40 rounded-md transition-colors"><Plus size={14} /> Add workflow</button>
+          </div>
+        )}
+
+        <div className="mt-6">
+          <div className="flex items-center justify-between mb-2 text-[11px] font-medium text-zinc-500 uppercase tracking-wider px-2">
+            {tasksTitle || "Tasks"}
+            <button onClick={onOpenTasksTimeline} className="h-6 px-2 rounded border bg-white hover:bg-zinc-50 flex items-center gap-1 text-zinc-700"><ClipboardList size={12} /> View</button>
+          </div>
+          {tasks.length ? tasks.map(t => (
+            <div key={t.id} className={`px-2 py-1.5 text-[13px] hover:bg-zinc-200/40 rounded-md transition-colors truncate ${t.done ? "text-zinc-400 line-through" : "text-zinc-800"}`}>{t.label}</div>
+          )) : <div className="text-[12px] text-zinc-400 px-2 py-2">No tasks found.</div>}
+        </div>
+      </nav>
+
+      <div className="pt-4 border-t border-zinc-200/50 px-2 space-y-0.5">
+        <Item icon={Settings} label="Settings" />
+        <Item icon={Trash2} label="Trash" />
+      </div>
+    </aside>
+  );
+}
+
+==========================================================================================
+FILE: src\components\TopNav.jsx
+==========================================================================================
+// TopNav.jsx
+import { Search, Bell } from "lucide-react";
+
+export default function TopNav() {
+  return (
+    <div className="h-14 px-5 flex items-center justify-between bg-[#fbfbfa] border-b border-zinc-200/70">
+      <div className="grid grid-cols-[280px_1fr] items-center gap-4">
+        <div className="flex items-center gap-3">
+          <div className="h-8 w-8 rounded-xl bg-zinc-900 text-white flex items-center justify-center text-xs font-semibold">
+            DF
+          </div>
+          <div className="min-w-0">
+            <div className="text-[13px] font-semibold text-zinc-900 truncate">DFMEA Studio</div>
+            <div className="text-[11px] text-zinc-500 truncate">
+              Desktop mock • <span className="text-zinc-700">Requirements</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="hidden lg:flex items-center gap-1 bg-white rounded-xl p-1 border border-zinc-200/80">
+          <button className="text-[13px] px-3 py-1.5 rounded-lg font-medium text-white bg-zinc-900">
+            Requirements
+          </button>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <div className="hidden xl:flex items-center gap-2 bg-white rounded-xl px-3 py-2 border border-zinc-200/80">
+          <Search size={18} strokeWidth={1.6} className="text-zinc-600" />
+          <input className="w-64 text-[13px] outline-none placeholder:text-zinc-400 bg-transparent" placeholder="Search (mock)" disabled />
+        </div>
+
+        <button disabled className="h-10 w-10 rounded-xl bg-white border border-zinc-200/80 grid place-items-center opacity-70">
+          <Bell size={18} strokeWidth={1.6} className="text-zinc-700" />
+        </button>
+
+        <button disabled className="text-[13px] font-medium px-3.5 py-2 rounded-xl bg-zinc-900 text-white opacity-70">
+          Share
+        </button>
+      </div>
+    </div>
+  );
+}
+
+==========================================================================================
+FILE: src\components\Workspace.jsx
+==========================================================================================
+// src/components/Workspace.jsx
+import { useRef, useState, useLayoutEffect } from "react";
+import { FileText } from "lucide-react";
+import { useDFMEA } from "../contexts/DFMEAContext";
+
+import RequirementsViewport from "./RequirementsViewport";
+import AiDock from "./AiDock";
+
+export default function Workspace() {
+  const { requirementsData } = useDFMEA();
+
+  const dockRef = useRef(null);
+  const [dockHeight, setDockHeight] = useState(0);
+
+  useLayoutEffect(() => {
+    if (!dockRef.current) return;
+    const ro = new ResizeObserver((entries) => {
+      setDockHeight(Math.ceil(entries[0].contentRect.height));
+    });
+    ro.observe(dockRef.current);
+    return () => ro.disconnect();
+  }, []);
+
+  return (
+    // ✅ min-w-0 prevents flex overflow / horizontal whitespace
+    <div className="flex-1 min-w-0 overflow-hidden bg-[#fbfbfa]">
+      <div className="h-full flex flex-col">
+        <div className="h-12 px-6 flex items-center justify-between bg-[#fbfbfa] border-b border-zinc-200/70">
+          <div className="flex items-center gap-2 min-w-0">
+            <FileText size={18} strokeWidth={1.6} className="text-zinc-700" />
+            <div className="text-[13px] font-semibold tracking-tight text-zinc-900 truncate">
+              {requirementsData?.title || "Requirements"}
+            </div>
+            <div className="text-[11px] text-zinc-500 whitespace-nowrap">
+              • {requirementsData?.meta?.visibility ?? "private"}
+            </div>
+          </div>
+
+          <div className="text-[11px] text-zinc-500 whitespace-nowrap">
+            {requirementsData?.meta?.edited ?? "—"}
+          </div>
+        </div>
+
+        <div className="relative flex-1 overflow-hidden">
+          <div
+            className="h-full overflow-y-auto overflow-x-hidden"
+            style={{ paddingBottom: dockHeight ? dockHeight + 28 : 320 }}
+          >
+            <RequirementsViewport data={requirementsData} />
+            <div className="h-10" />
+          </div>
+
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute top-0 left-0 right-0 h-10 bg-gradient-to-b from-[#fbfbfa] to-transparent"
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-[#fbfbfa] to-transparent"
+          />
+
+          <div className="absolute left-0 right-0 bottom-0">
+            <div className="px-8 pb-6">
+              <div ref={dockRef}>
+                <AiDock />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+==========================================================================================
+FILE: src\contexts\DFMEAContext.jsx
+==========================================================================================
+import React, { createContext, useContext, useMemo } from "react";
+import requirementsJson from "../data/requirements.json";
+
+const DFMEAContext = createContext(null);
+
+export function DFMEAProvider({ children }) {
+  const value = useMemo(() => {
+    return {
+      requirementsData: requirementsJson
+    };
+  }, []);
+
+  return <DFMEAContext.Provider value={value}>{children}</DFMEAContext.Provider>;
+}
+
+export function useDFMEA() {
+  const ctx = useContext(DFMEAContext);
+  if (!ctx) throw new Error("useDFMEA must be used inside DFMEAProvider");
+  return ctx;
+}
+
+==========================================================================================
+FILE: src\data\requirements.json
+==========================================================================================
+{
+  "tabId": "requirements",
+  "title": "Requirements",
+  "meta": {
+    "visibility": "private",
+    "edited": "Just now"
+  },
+  "tasksTitle": "Tasks",
+  "tasks": [
+    { "id": "t1", "label": "Review top 3 flagged requirements", "done": false },
+    { "id": "t2", "label": "Add missing units + tolerances", "done": false },
+    { "id": "t3", "label": "Confirm owner roles", "done": true }
+  ],
+  "content": {
+    "projectName": "DFMEA Project",
+    "requirements": [
+      {
+        "id": "REQ-001",
+        "text": "The ECU shall boot within 2 seconds at 9–16 V and -20°C to +70°C.",
+        "domainCategory": "Software",
+        "reqType": "Functional",
+        "priority": "High",
+        "ownerRole": "System",
+        "ownerName": "You",
+        "files": [],
+        "isComplete": true,
+        "flagged": false,
+        "aiAdvice": "—"
+      },
+      {
+        "id": "REQ-002",
+        "text": "The housing should be robust and durable.",
+        "domainCategory": "Mechanical",
+        "reqType": "Non-functional",
+        "priority": "Medium",
+        "ownerRole": "Mechanical",
+        "ownerName": "You",
+        "files": ["/mock/file.pdf"],
+        "isComplete": false,
+        "flagged": true,
+        "aiAdvice": "Add measurable criteria (drop height, torque spec, IP rating, temperature)."
+      },
+      {
+        "id": "REQ-003",
+        "text": "The system shall limit inrush current to 1.2 A max during startup at 12 V.",
+        "domainCategory": "Electrical",
+        "reqType": "Functional",
+        "priority": "High",
+        "ownerRole": "Electrical",
+        "ownerName": "You",
+        "files": [],
+        "isComplete": true,
+        "flagged": false,
+        "aiAdvice": "—"
+      }
+    ]
+  }
+}

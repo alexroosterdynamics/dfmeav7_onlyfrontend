@@ -1,16 +1,70 @@
-# React + Vite
+# DFMEA Studio (Frontend Mock)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A desktop-first mock UI for a DFMEA/requirements workspace.
+This project intentionally focuses on clean layout, minimal code, and scalable state design.
 
-Currently, two official plugins are available:
+## Tech
+- React (JSX)
+- TailwindCSS (utility-first styling)
+- lucide-react (icons)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Structure
 
-## React Compiler
+src/
+  App.jsx
+  components/
+    TopNav.jsx
+    Sidebar.jsx
+    Workspace.jsx
+    RequirementsViewport.jsx
+    AiDock.jsx
+  contexts/
+    DFMEAContext.jsx
+  data/
+    requirements.json
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## State Management
 
-## Expanding the ESLint configuration
+The app uses a small Context + useReducer store (`DFMEAContext.jsx`) to manage:
+- navigation (activeTab)
+- requirements data (requirementsData)
+- workflows (workflows, selectedWorkflowId)
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+UI-only view preferences (cards/list, sizing, filtering) stay local to components.
+
+## Data Model
+
+`src/data/requirements.json`
+
+- title: string
+- meta.visibility: "private" | "shared" | ...
+- meta.edited: string (human label)
+- tasksTitle: string
+- tasks[]: { id, label, done }
+- content.projectName: string
+- content.requirements[]:
+  - id: string
+  - text: string
+  - domainCategory: string (Software/Electrical/Mechanical/...)
+  - reqType: string
+  - priority: string
+  - ownerRole: string
+  - ownerName: string
+  - files: string[]
+  - isComplete: boolean
+  - flagged: boolean
+  - aiAdvice: string
+
+## Adding a new screen (tab)
+
+1. Add a new tab id in the store or Sidebar
+2. Render it conditionally in Workspace:
+   `activeTab === "yourTab" ? <YourComponent/> : null`
+
+Keep screens isolated but use shared app state from context.
+
+## Design goals
+- One source of truth
+- Minimal props / minimal drilling
+- Clear separation of: data state vs UI preferences
+- Easy extension without adding libraries
