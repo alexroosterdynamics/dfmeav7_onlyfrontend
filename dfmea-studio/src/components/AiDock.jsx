@@ -20,12 +20,14 @@ export default function AiDock() {
           >
             Generate
           </button>
+
           <button
             disabled
             className="text-[12px] px-3 py-2 rounded-xl bg-white border border-zinc-200/80 text-zinc-700 opacity-70 cursor-not-allowed"
           >
             Ask question
           </button>
+          
         </div>
       </div>
     </div>
