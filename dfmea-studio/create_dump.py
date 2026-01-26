@@ -15,6 +15,16 @@ INCLUDE_DIRS = [
     PROJECT_ROOT / "src" / "data",
 ]
 
+PROJECT_ROOT = Path(__file__).resolve().parent
+
+
+#EDIT THIS 
+INCLUDE_DIRS = [
+    PROJECT_ROOT / "src" / "components",
+    PROJECT_ROOT / "src" / "contexts",
+ 
+]
+
 INCLUDE_FILES = [
     PROJECT_ROOT / "src" / "App.jsx",
 ]

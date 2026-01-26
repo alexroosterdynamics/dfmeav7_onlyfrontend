@@ -1,26 +1,25 @@
-import { useRef, useState, useLayoutEffect } from "react";
 import { FileText, CalendarDays } from "lucide-react";
-import { useDFMEA } from "../contexts/DFMEAContext";
 import RequirementsViewport from "./RequirementsViewport";
 import TasksViewport from "./TasksViewport";
 import AiDock from "./AiDock";
+import { useAppNavigation } from "../hooks/useAppNavigation";
+import { useRequirements } from "../hooks/useRequirements";
+import { useTasks } from "../hooks/useTasks";
+import { useDockHeightPadding } from "../hooks/useDockHeightPadding";
 
-export default function Workspace({ activeTab = "requirements" }) {
-  const { requirementsData } = useDFMEA();
-  const dockRef = useRef(null);
-  const [dockHeight, setDockHeight] = useState(0);
+export default function Workspace() {
+  const { activeTab } = useAppNavigation();
+  const { meta: reqMeta, requirementsData } = useRequirements();
+  const { meta: tasksMeta, tasksData } = useTasks();
 
-  useLayoutEffect(() => {
-    if (!dockRef.current) return;
-    const ro = new ResizeObserver((entries) => {
-      setDockHeight(Math.ceil(entries[0].contentRect.height));
-    });
-    ro.observe(dockRef.current);
-    return () => ro.disconnect();
-  }, []);
+  const { dockRef, dockHeight } = useDockHeightPadding();
 
-  const currentTitle = activeTab === "tasks" ? "Tasks" : requirementsData?.title || "Requirements";
-  const Icon = activeTab === "tasks" ? CalendarDays : FileText;
+  const isTasks = activeTab === "tasks";
+  const currentTitle = isTasks ? tasksData?.title || "Tasks" : requirementsData?.title || "Requirements";
+  const Icon = isTasks ? CalendarDays : FileText;
+
+  const visibility = isTasks ? tasksMeta?.visibility : reqMeta?.visibility;
+  const edited = isTasks ? tasksMeta?.edited : reqMeta?.edited;
 
   return (
     <div className="flex-1 min-w-0 overflow-hidden bg-[#fbfbfa]">
@@ -28,21 +27,18 @@ export default function Workspace({ activeTab = "requirements" }) {
         <div className="h-12 px-6 flex items-center justify-between bg-[#fbfbfa] border-b border-zinc-200/70">
           <div className="flex items-center gap-2 min-w-0">
             <Icon size={18} strokeWidth={1.6} className="text-zinc-700" />
-            <div className="text-[13px] font-semibold tracking-tight text-zinc-900 truncate">
-              {currentTitle}
-            </div>
-            <div className="text-[11px] text-zinc-500 whitespace-nowrap">
-              • {requirementsData?.meta?.visibility ?? "private"}
-            </div>
+            <div className="text-[13px] font-semibold tracking-tight text-zinc-900 truncate">{currentTitle}</div>
+            <div className="text-[11px] text-zinc-500 whitespace-nowrap">• {visibility ?? "private"}</div>
           </div>
-          <div className="text-[11px] text-zinc-500 whitespace-nowrap">
-            {requirementsData?.meta?.edited ?? "—"}
-          </div>
+          <div className="text-[11px] text-zinc-500 whitespace-nowrap">{edited ?? "—"}</div>
         </div>
 
         <div className="relative flex-1 overflow-hidden">
-          <div className="h-full overflow-y-auto overflow-x-hidden" style={{ paddingBottom: dockHeight ? dockHeight + 28 : 320 }}>
-            {activeTab === "tasks" ? <TasksViewport /> : <RequirementsViewport data={requirementsData} />}
+          <div
+            className="h-full overflow-y-auto overflow-x-hidden"
+            style={{ paddingBottom: dockHeight ? dockHeight + 28 : 320 }}
+          >
+            {isTasks ? <TasksViewport /> : <RequirementsViewport />}
             <div className="h-10" />
           </div>
 

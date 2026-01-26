@@ -1,0 +1,27 @@
+{
+  "tabId": "tasks",
+  "title": "Tasks",
+  "meta": {
+    "visibility": "private",
+    "edited": "Just now"
+  },
+  "project": "DFMEA Project",
+  "range": { "start": "2026-01-15", "end": "2026-02-15" },
+  "lanes": [
+    { "id": "elec", "title": "Electrical", "group": "Hardware" },
+    { "id": "soft", "title": "Software", "group": "Dev" },
+    { "id": "mech", "title": "Mechanical", "group": "Mech" }
+  ],
+  "milestones": [
+    { "id": "m1", "date": "2026-01-20", "title": "Kickoff", "color": "bg-emerald-500" },
+    { "id": "m2", "date": "2026-02-05", "title": "Review", "color": "bg-blue-500" }
+  ],
+  "tasks": [
+    { "id": "T1", "title": "Review reqs", "status": "todo", "priority": "High", "owner": "Alice", "start": "2026-01-20", "end": "2026-01-25", "progress": 0, "lane": "elec" },
+    { "id": "T2", "title": "Add units", "status": "active", "priority": "Med", "owner": "Bob", "start": "2026-01-18", "end": "2026-01-22", "progress": 60, "lane": "soft" },
+    { "id": "T3", "title": "Confirm roles", "status": "done", "priority": "Low", "owner": "Carol", "start": "2026-01-15", "end": "2026-01-20", "progress": 100, "lane": "mech" },
+    { "id": "T4", "title": "Specs update", "status": "blocked", "priority": "High", "owner": "Dave", "start": "2026-01-22", "end": "2026-01-28", "progress": 20, "lane": "elec" },
+    { "id": "T5", "title": "Validation", "status": "todo", "priority": "Med", "owner": "Eve", "start": "2026-01-23", "end": "2026-01-30", "progress": 0, "lane": "mech" },
+    { "id": "T6", "title": "Phase 2", "status": "todo", "priority": "Low", "owner": "Dave", "start": "2026-01-24", "end": "2026-02-01", "progress": 0, "lane": "elec" }
+  ]
+}

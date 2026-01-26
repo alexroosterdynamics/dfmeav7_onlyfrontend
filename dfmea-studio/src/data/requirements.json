@@ -14,6 +14,7 @@
   "content": {
     "projectName": "DFMEA Project",
     "requirements": [
+      
       {
         "id": "REQ-001",
         "text": "The ECU shall boot within 2 seconds at 9–16 V and -20°C to +70°C.",
@@ -27,6 +28,7 @@
         "flagged": false,
         "aiAdvice": "—"
       },
+
       {
         "id": "REQ-002",
         "text": "The housing should be robust and durable.",
@@ -40,6 +42,7 @@
         "flagged": true,
         "aiAdvice": "Add measurable criteria (drop height, torque spec, IP rating, temperature)."
       },
+
       {
         "id": "REQ-003",
         "text": "The system shall limit inrush current to 1.2 A max during startup at 12 V.",
