@@ -18,10 +18,12 @@ INCLUDE_DIRS = [
 PROJECT_ROOT = Path(__file__).resolve().parent
 
 
-#EDIT THIS 
+#EDIT THIS
 INCLUDE_DIRS = [
     PROJECT_ROOT / "src" / "components",
     PROJECT_ROOT / "src" / "contexts",
+    PROJECT_ROOT / "src" / "data",
+    PROJECT_ROOT / "src" / "hooks",
  
 ]
 

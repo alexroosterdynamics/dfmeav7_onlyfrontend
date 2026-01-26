@@ -1,10 +1,12 @@
 DFMEA STUDIO SOURCE DUMP
-Generated: 2026-01-26 12:38:53
+Generated: 2026-01-26 13:44:25
 Root: D:\dfmeav7_onlyfrontend\dfmea-studio
 
 Included paths:
  - src\components
  - src\contexts
+ - src\data
+ - src\hooks
  - src\App.jsx
 
 Files:
@@ -16,6 +18,16 @@ Files:
  - src\components\TopNav.jsx
  - src\components\Workspace.jsx
  - src\contexts\DFMEAContext.jsx
+ - src\data\requirements.json
+ - src\data\tasks.json
+ - src\hooks\useAppNavigation.js
+ - src\hooks\useDockHeightPadding.js
+ - src\hooks\useRequirementGrouping.js
+ - src\hooks\useRequirements.js
+ - src\hooks\useTaskFiltering.js
+ - src\hooks\useTasks.js
+ - src\hooks\useTimelineLayout.js
+ - src\hooks\useWorkflows.js
 
 ==========================================================================================
 FILE: src\App.jsx
@@ -124,71 +136,32 @@ export default function AiDock() {
 FILE: src\components\RequirementsViewport.jsx
 ==========================================================================================
 import { useState } from "react";
-import {
-  Cpu,
-  Zap,
-  Wrench,
-  Paperclip,
-  CheckCircle2,
-  AlertTriangle,
-  LayoutGrid,
-  List,
-  Minus,
-  Plus,
-} from "lucide-react";
+import { Cpu, Zap, Wrench, Paperclip, CheckCircle2, AlertTriangle, LayoutGrid, List, Minus, Plus } from "lucide-react";
 import { useRequirements } from "../hooks/useRequirements";
 import { useRequirementGrouping } from "../hooks/useRequirementGrouping";
 
 const ICONS = { Software: Cpu, Electrical: Zap, Mechanical: Wrench };
 
 const Pill = ({ tone = "neutral", children }) => (
-  <span
-    className={`text-[11px] px-2 py-1 rounded-full border tracking-tight ${
-      tone === "bad"
-        ? "bg-amber-50 border-amber-200/70 text-amber-900"
-        : tone === "good"
-        ? "bg-emerald-50 border-emerald-200/70 text-emerald-900"
-        : "bg-[#fbfbfa] border-zinc-200/80 text-zinc-700"
-    }`}
-  >
+  <span className={`text-[11px] px-2 py-1 rounded-full border tracking-tight ${tone === "bad" ? "bg-amber-50 border-amber-200/70 text-amber-900" : tone === "good" ? "bg-emerald-50 border-emerald-200/70 text-emerald-900" : "bg-[#fbfbfa] border-zinc-200/80 text-zinc-700"}`}>
     {children}
   </span>
 );
 
 const Btn = ({ active, disabled, onClick, children }) => (
-  <button
-    onClick={onClick}
-    disabled={disabled}
-    className={`inline-flex items-center gap-1 text-[11px] px-2.5 py-1.5 rounded-xl border tracking-tight transition-colors ${
-      active
-        ? "bg-zinc-900 text-white border-zinc-900"
-        : disabled
-        ? "bg-white border-zinc-200/60 text-zinc-300 cursor-not-allowed"
-        : "bg-white border-zinc-200/80 text-zinc-700 hover:bg-zinc-100"
-    }`}
-  >
+  <button onClick={onClick} disabled={disabled} className={`inline-flex items-center gap-1 text-[11px] px-2.5 py-1.5 rounded-xl border tracking-tight transition-colors ${active ? "bg-zinc-900 text-white border-zinc-900" : disabled ? "bg-white border-zinc-200/60 text-zinc-300 cursor-not-allowed" : "bg-white border-zinc-200/80 text-zinc-700 hover:bg-zinc-100"}`}>
     {children}
   </button>
 );
 
 export default function RequirementsViewport() {
   const { projectName, requirements, frozen, stats } = useRequirements();
-
   const [view, setView] = useState("cards");
   const [size, setSize] = useState("md");
   const [filter, setFilter] = useState("all");
-
   const { buckets, filtered } = useRequirementGrouping(requirements, { frozenFn: frozen, filter });
 
-  const grid =
-    size === "xs"
-      ? "grid-cols-5 gap-3"
-      : size === "sm"
-      ? "grid-cols-4 gap-3"
-      : size === "lg"
-      ? "grid-cols-2 gap-4"
-      : "grid-cols-3 gap-4";
-
+  const grid = size === "xs" ? "grid-cols-5 gap-3" : size === "sm" ? "grid-cols-4 gap-3" : size === "lg" ? "grid-cols-2 gap-4" : "grid-cols-3 gap-4";
   const pad = size === "xs" || size === "sm" ? "p-3" : size === "lg" ? "p-5" : "p-4";
 
   return (
@@ -197,9 +170,7 @@ export default function RequirementsViewport() {
         <div className="flex items-start justify-between gap-6">
           <div>
             <div className="text-[40px] leading-[1.12] font-semibold tracking-tight">Requirements</div>
-            <div className="mt-2 text-[13px] text-zinc-600">
-              Project • <span className="text-zinc-900 font-medium">{projectName}</span>
-            </div>
+            <div className="mt-2 text-[13px] text-zinc-600">Project • <span className="text-zinc-900 font-medium">{projectName}</span></div>
           </div>
 
           <div className="pt-2 flex items-center gap-2">
@@ -209,39 +180,22 @@ export default function RequirementsViewport() {
                 {stats.frozen}/{stats.total} frozen
               </span>
             </Pill>
-
             <Pill tone={stats.flagged ? "bad" : "good"}>
-              <span className="inline-flex items-center gap-1.5">
-                <AlertTriangle size={12} /> {stats.flagged} flagged
-              </span>
+              <span className="inline-flex items-center gap-1.5"><AlertTriangle size={12} /> {stats.flagged} flagged</span>
             </Pill>
 
             <div className="ml-2 flex gap-1.5">
-              {[
-                ["all", "All"],
-                ["unfrozen", "Unfrozen"],
-                ["frozen", "Frozen"],
-              ].map(([m, l]) => (
-                <Btn key={m} active={filter === m} onClick={() => setFilter(m)}>
-                  {l}
-                </Btn>
+              {[["all", "All"], ["unfrozen", "Unfrozen"], ["frozen", "Frozen"]].map(([m, l]) => (
+                <Btn key={m} active={filter === m} onClick={() => setFilter(m)}>{l}</Btn>
               ))}
             </div>
 
             <div className="ml-2 flex gap-1.5">
-              <Btn active={view === "cards"} onClick={() => setView("cards")}>
-                <LayoutGrid size={14} /> Cards
-              </Btn>
-              <Btn active={view === "list"} onClick={() => setView("list")}>
-                <List size={14} /> List
-              </Btn>
+              <Btn active={view === "cards"} onClick={() => setView("cards")}><LayoutGrid size={14} /> Cards</Btn>
+              <Btn active={view === "list"} onClick={() => setView("list")}><List size={14} /> List</Btn>
               <div className="w-px h-6 bg-zinc-200/80 mx-1" />
-              <Btn onClick={() => setSize((s) => (s === "lg" ? "md" : s === "md" ? "sm" : "xs"))} disabled={view !== "cards"}>
-                <Minus size={14} />
-              </Btn>
-              <Btn onClick={() => setSize((s) => (s === "xs" ? "sm" : s === "sm" ? "md" : "lg"))} disabled={view !== "cards"}>
-                <Plus size={14} />
-              </Btn>
+              <Btn onClick={() => setSize((s) => (s === "lg" ? "md" : s === "md" ? "sm" : "xs"))} disabled={view !== "cards"}><Minus size={14} /></Btn>
+              <Btn onClick={() => setSize((s) => (s === "xs" ? "sm" : s === "sm" ? "md" : "lg"))} disabled={view !== "cards"}><Plus size={14} /></Btn>
             </div>
           </div>
         </div>
@@ -254,15 +208,11 @@ export default function RequirementsViewport() {
 
           const full = buckets.map[d] || [];
           const Icon = ICONS[d] || Cpu;
-
           const uf = full.filter((r) => !frozen(r)).length;
           const fg = full.filter((r) => r.flagged).length;
 
           return (
-            <div
-              key={d}
-              className="rounded-xl border border-zinc-200/80 bg-white shadow-[0_1px_0_rgba(0,0,0,0.05),0_14px_40px_rgba(0,0,0,0.06)]"
-            >
+            <div key={d} className="rounded-xl border border-zinc-200/80 bg-white shadow-[0_1px_0_rgba(0,0,0,0.05),0_14px_40px_rgba(0,0,0,0.06)]">
               <div className="px-4 py-3 border-b border-zinc-200/70 bg-[#fbfbfa] flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="h-8 w-8 rounded-xl border border-zinc-200/80 bg-white grid place-items-center">
@@ -270,9 +220,7 @@ export default function RequirementsViewport() {
                   </div>
                   <div>
                     <div className="text-[12px] font-semibold text-zinc-900">{d}</div>
-                    <div className="text-[11px] text-zinc-500">
-                      {uf} unfrozen • {fg} flagged • {full.length} total
-                    </div>
+                    <div className="text-[11px] text-zinc-500">{uf} unfrozen • {fg} flagged • {full.length} total</div>
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -284,47 +232,24 @@ export default function RequirementsViewport() {
               {view === "cards" ? (
                 <div className={`p-4 grid ${grid}`}>
                   {list.map((r) => (
-                    <div
-                      key={r.id}
-                      className={`rounded-2xl border border-zinc-200/80 bg-white shadow-[0_1px_0_rgba(0,0,0,0.05),0_10px_24px_rgba(0,0,0,0.06)] ${pad}`}
-                    >
+                    <div key={r.id} className={`rounded-2xl border border-zinc-200/80 bg-white shadow-[0_1px_0_rgba(0,0,0,0.05),0_10px_24px_rgba(0,0,0,0.06)] ${pad}`}>
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <div className="flex items-center gap-2">
                             <div className="text-[11px] text-zinc-500">{r.id}</div>
-                            {frozen(r) ? (
-                              <CheckCircle2 size={14} className="text-zinc-900" />
-                            ) : r.flagged ? (
-                              <AlertTriangle size={14} className="text-zinc-900" />
-                            ) : (
-                              <AlertTriangle size={14} className="text-zinc-600" />
-                            )}
+                            {frozen(r) ? <CheckCircle2 size={14} className="text-zinc-900" /> : r.flagged ? <AlertTriangle size={14} className="text-zinc-900" /> : <AlertTriangle size={14} className="text-zinc-600" />}
                           </div>
                           <div className="mt-1 text-[13px] font-semibold text-zinc-900 line-clamp-2">{r.text}</div>
                         </div>
                       </div>
-
                       <div className="mt-3 flex flex-wrap gap-2">
-                        <Pill>
-                          <span className="inline-flex items-center gap-1.5">
-                            <div className="h-1.5 w-1.5 rounded-full bg-zinc-900/70" />
-                            {r.reqType}
-                          </span>
-                        </Pill>
+                        <Pill><span className="inline-flex items-center gap-1.5"><div className="h-1.5 w-1.5 rounded-full bg-zinc-900/70" />{r.reqType}</span></Pill>
                         <Pill>{r.priority}</Pill>
-                        <Pill tone={frozen(r) ? "good" : "neutral"}>
-                          {frozen(r) ? "Frozen" : r.flagged ? "Flagged" : "Incomplete"}
-                        </Pill>
+                        <Pill tone={frozen(r) ? "good" : "neutral"}>{frozen(r) ? "Frozen" : r.flagged ? "Flagged" : "Incomplete"}</Pill>
                       </div>
-
                       <div className="mt-3 flex items-center justify-between text-[11px] text-zinc-500">
-                        <div>
-                          {r.ownerRole} • {r.ownerName}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Paperclip size={14} strokeWidth={1.7} />
-                          {r.files?.length ?? 0}
-                        </div>
+                        <div>{r.ownerRole} • {r.ownerName}</div>
+                        <div className="flex items-center gap-2"><Paperclip size={14} strokeWidth={1.7} />{r.files?.length ?? 0}</div>
                       </div>
                     </div>
                   ))}
@@ -338,53 +263,29 @@ export default function RequirementsViewport() {
                     <div className="col-span-2 px-5 py-3">Status</div>
                     <div className="col-span-1 px-5 py-3 text-right">Files</div>
                   </div>
-
                   {list.map((r) => (
-                    <div
-                      key={r.id}
-                      className="grid grid-cols-12 text-[13px] border-b last:border-b-0 border-zinc-200/60 hover:bg-[#fbfbfa] transition-colors"
-                    >
+                    <div key={r.id} className="grid grid-cols-12 text-[13px] border-b last:border-b-0 border-zinc-200/60 hover:bg-[#fbfbfa] transition-colors">
                       <div className="col-span-2 px-5 py-3 text-zinc-600 flex items-center gap-2">
                         <span>{r.id}</span>
-                        {frozen(r) ? (
-                          <CheckCircle2 size={14} className="text-zinc-900" />
-                        ) : r.flagged ? (
-                          <AlertTriangle size={14} className="text-zinc-900" />
-                        ) : (
-                          <AlertTriangle size={14} className="text-zinc-600" />
-                        )}
+                        {frozen(r) ? <CheckCircle2 size={14} className="text-zinc-900" /> : r.flagged ? <AlertTriangle size={14} className="text-zinc-900" /> : <AlertTriangle size={14} className="text-zinc-600" />}
                       </div>
-
                       <div className="col-span-5 px-5 py-3">
                         <div className="text-zinc-900 leading-snug">{r.text}</div>
                         <div className="mt-2 flex flex-wrap gap-2">
-                          <Pill>
-                            <span className="inline-flex items-center gap-1.5">
-                              <div className="h-1.5 w-1.5 rounded-full bg-zinc-900/70" />
-                              {r.reqType}
-                            </span>
-                          </Pill>
-                          <Pill tone={frozen(r) ? "good" : r.flagged ? "bad" : "neutral"}>
-                            {frozen(r) ? "Frozen" : r.flagged ? "Flagged" : "Incomplete"}
-                          </Pill>
+                          <Pill><span className="inline-flex items-center gap-1.5"><div className="h-1.5 w-1.5 rounded-full bg-zinc-900/70" />{r.reqType}</span></Pill>
+                          <Pill tone={frozen(r) ? "good" : r.flagged ? "bad" : "neutral"}>{frozen(r) ? "Frozen" : r.flagged ? "Flagged" : "Incomplete"}</Pill>
                         </div>
                       </div>
-
                       <div className="col-span-2 px-5 py-3 text-zinc-600">
                         <div className="text-zinc-900">{r.ownerRole}</div>
                         <div className="mt-0.5 text-[11px] text-zinc-500">Added by {r.ownerName}</div>
                       </div>
-
                       <div className="col-span-2 px-5 py-3 text-zinc-600">
                         <div className="text-zinc-900">{r.priority}</div>
-                        <div className="mt-0.5 text-[11px] text-zinc-500">
-                          {frozen(r) ? "Frozen" : r.flagged ? "Flagged" : "Incomplete"}
-                        </div>
+                        <div className="mt-0.5 text-[11px] text-zinc-500">{frozen(r) ? "Frozen" : r.flagged ? "Flagged" : "Incomplete"}</div>
                       </div>
-
                       <div className="col-span-1 px-5 py-3 text-right text-zinc-600 flex items-center justify-end gap-2">
-                        <Paperclip size={14} strokeWidth={1.7} className="text-zinc-500" />
-                        {r.files?.length ?? 0}
+                        <Paperclip size={14} strokeWidth={1.7} className="text-zinc-500" />{r.files?.length ?? 0}
                       </div>
                     </div>
                   ))}
@@ -493,17 +394,7 @@ export default function Sidebar() {
 FILE: src\components\TasksViewport.jsx
 ==========================================================================================
 import { useState } from "react";
-import {
-  CheckCircle2,
-  AlertTriangle,
-  Clock,
-  Search,
-  LayoutPanelTop,
-  LayoutGrid,
-  LayoutPanelLeft,
-  Maximize2,
-} from "lucide-react";
-
+import { CheckCircle2, AlertTriangle, Clock, Search, LayoutPanelTop, LayoutGrid, LayoutPanelLeft, Maximize2 } from "lucide-react";
 import { useTasks } from "../hooks/useTasks";
 import { useTaskFiltering } from "../hooks/useTaskFiltering";
 import { useTimelineLayout } from "../hooks/useTimelineLayout";
@@ -516,44 +407,22 @@ const STATUS = {
 };
 
 const Pill = ({ tone, children }) => (
-  <span
-    className={`text-[11px] px-2.5 py-1 rounded-full border flex items-center gap-1.5 font-medium ${
-      tone === "good"
-        ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-        : tone === "bad"
-        ? "bg-amber-50 border-amber-200 text-amber-700"
-        : "bg-white border-zinc-200 text-zinc-600 shadow-sm"
-    }`}
-  >
+  <span className={`text-[11px] px-2.5 py-1 rounded-full border flex items-center gap-1.5 font-medium ${tone === "good" ? "bg-emerald-50 border-emerald-200 text-emerald-700" : tone === "bad" ? "bg-amber-50 border-amber-200 text-amber-700" : "bg-white border-zinc-200 text-zinc-600 shadow-sm"}`}>
     {children}
   </span>
 );
 
 export default function TasksViewport() {
   const { tasks, lanes, milestones, range, project, stats } = useTasks();
-
   const [q, setQ] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [viewMode, setViewMode] = useState("split");
-
   const { filtered, count } = useTaskFiltering(tasks, { q, statusFilter });
 
   const pxPerDay = 40;
-  const { timelineWidth, dayCount, getLeft, getWidth, lanesPacked } = useTimelineLayout({
-    range,
-    pxPerDay,
-    lanes,
-    tasks: filtered,
-  });
+  const { timelineWidth, dayCount, getLeft, getWidth, lanesPacked } = useTimelineLayout({ range, pxPerDay, lanes, tasks: filtered });
 
-  const split =
-    viewMode === "timeline"
-      ? { left: 30, right: 70 }
-      : viewMode === "split"
-      ? { left: 45, right: 55 }
-      : viewMode === "tasks"
-      ? { left: 65, right: 35 }
-      : { left: 0, right: 100 };
+  const split = viewMode === "timeline" ? { left: 30, right: 70 } : viewMode === "split" ? { left: 45, right: 55 } : viewMode === "tasks" ? { left: 65, right: 35 } : { left: 0, right: 100 };
 
   return (
     <div className="h-screen flex flex-col bg-zinc-50 overflow-hidden font-sans text-zinc-900">
@@ -561,20 +430,12 @@ export default function TasksViewport() {
         <div className="flex items-start justify-between gap-6 mb-6">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-zinc-900">Tasks</h1>
-            <p className="mt-1 text-sm text-zinc-500">
-              Project • <span className="font-medium text-zinc-900">{project}</span>
-            </p>
+            <p className="mt-1 text-sm text-zinc-500">Project • <span className="font-medium text-zinc-900">{project}</span></p>
           </div>
           <div className="flex gap-2">
-            <Pill tone="good">
-              <CheckCircle2 size={12} /> {stats.done} done
-            </Pill>
-            <Pill tone={stats.blocked ? "bad" : "neutral"}>
-              <AlertTriangle size={12} /> {stats.blocked} blocked
-            </Pill>
-            <Pill>
-              <Clock size={12} /> {stats.active} active
-            </Pill>
+            <Pill tone="good"><CheckCircle2 size={12} /> {stats.done} done</Pill>
+            <Pill tone={stats.blocked ? "bad" : "neutral"}><AlertTriangle size={12} /> {stats.blocked} blocked</Pill>
+            <Pill><Clock size={12} /> {stats.active} active</Pill>
           </div>
         </div>
 
@@ -582,25 +443,11 @@ export default function TasksViewport() {
           <div className="flex items-center gap-3 flex-1">
             <div className="relative flex-1 max-w-sm ml-1">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
-              <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder="Search tasks..."
-                className="w-full pl-9 pr-3 py-1.5 text-sm rounded-lg bg-zinc-50 border-transparent focus:bg-white focus:ring-2 ring-zinc-100 outline-none transition-all placeholder:text-zinc-400"
-              />
+              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search tasks..." className="w-full pl-9 pr-3 py-1.5 text-sm rounded-lg bg-zinc-50 border-transparent focus:bg-white focus:ring-2 ring-zinc-100 outline-none transition-all placeholder:text-zinc-400" />
             </div>
-
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="text-sm px-3 py-1.5 rounded-lg bg-zinc-50 border-transparent hover:bg-zinc-100 cursor-pointer outline-none font-medium text-zinc-600"
-            >
+            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="text-sm px-3 py-1.5 rounded-lg bg-zinc-50 border-transparent hover:bg-zinc-100 cursor-pointer outline-none font-medium text-zinc-600">
               <option value="all">All Status</option>
-              {Object.keys(STATUS).map((k) => (
-                <option key={k} value={k}>
-                  {STATUS[k].label}
-                </option>
-              ))}
+              {Object.keys(STATUS).map((k) => (<option key={k} value={k}>{STATUS[k].label}</option>))}
             </select>
           </div>
 
@@ -611,13 +458,7 @@ export default function TasksViewport() {
               { id: "tasks", icon: LayoutPanelLeft, label: "List" },
               { id: "full", icon: Maximize2, label: "Full" },
             ].map((m) => (
-              <button
-                key={m.id}
-                onClick={() => setViewMode(m.id)}
-                className={`px-3 py-1.5 rounded-lg text-[11px] font-medium inline-flex items-center gap-1.5 transition-all ${
-                  viewMode === m.id ? "bg-white text-zinc-900 shadow-sm" : "text-zinc-500 hover:text-zinc-900"
-                }`}
-              >
+              <button key={m.id} onClick={() => setViewMode(m.id)} className={`px-3 py-1.5 rounded-lg text-[11px] font-medium inline-flex items-center gap-1.5 transition-all ${viewMode === m.id ? "bg-white text-zinc-900 shadow-sm" : "text-zinc-500 hover:text-zinc-900"}`}>
                 <m.icon size={14} /> {m.label}
               </button>
             ))}
@@ -638,27 +479,14 @@ export default function TasksViewport() {
                 {filtered.map((t) => {
                   const S = STATUS[t.status] || STATUS.todo;
                   return (
-                    <div
-                      key={t.id}
-                      className="group border-b border-zinc-50 last:border-0 px-5 py-3.5 hover:bg-zinc-50 transition-colors cursor-pointer"
-                    >
+                    <div key={t.id} className="group border-b border-zinc-50 last:border-0 px-5 py-3.5 hover:bg-zinc-50 transition-colors cursor-pointer">
                       <div className="flex items-start justify-between mb-1.5">
                         <span className="font-mono text-[10px] text-zinc-400">{t.id}</span>
-                        <div
-                          className={`flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide ${
-                            S.tone === "good"
-                              ? "bg-emerald-50 text-emerald-700"
-                              : S.tone === "bad"
-                              ? "bg-amber-50 text-amber-700"
-                              : "bg-zinc-100 text-zinc-500"
-                          }`}
-                        >
+                        <div className={`flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide ${S.tone === "good" ? "bg-emerald-50 text-emerald-700" : S.tone === "bad" ? "bg-amber-50 text-amber-700" : "bg-zinc-100 text-zinc-500"}`}>
                           <S.icon size={10} strokeWidth={3} /> {S.label}
                         </div>
                       </div>
-
                       <div className="text-[13px] font-semibold text-zinc-900 mb-2">{t.title}</div>
-
                       <div className="flex items-center justify-between text-xs text-zinc-500">
                         <span className="font-medium">{t.owner}</span>
                         <div className="flex items-center gap-2">
@@ -682,9 +510,7 @@ export default function TasksViewport() {
             <div className="px-5 py-4 border-b border-zinc-200 bg-zinc-50/50 flex items-center justify-between shrink-0">
               <div className="text-xs font-bold uppercase tracking-wider text-zinc-400">Timeline</div>
               <div className="flex gap-4 text-xs text-zinc-500 font-medium">
-                <span>
-                  {range.start} → {range.end}
-                </span>
+                <span>{range.start} → {range.end}</span>
                 <span className="px-2 py-0.5 bg-white border border-zinc-200 rounded">{dayCount} days</span>
               </div>
             </div>
@@ -692,25 +518,11 @@ export default function TasksViewport() {
             <div className="flex-1 overflow-auto relative bg-white">
               <div className="min-w-max">
                 <div className="sticky top-0 z-20 flex bg-white border-b border-zinc-200 h-9 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
-                  <div className="w-52 shrink-0 border-r border-zinc-100 bg-zinc-50/80 flex items-center px-5 text-xs font-semibold text-zinc-400">
-                    Lanes
-                  </div>
-
+                  <div className="w-52 shrink-0 border-r border-zinc-100 bg-zinc-50/80 flex items-center px-5 text-xs font-semibold text-zinc-400">Lanes</div>
                   <div className="relative flex-1" style={{ width: timelineWidth }}>
-                    <div
-                      className="absolute inset-0 w-full h-full"
-                      style={{
-                        backgroundImage: "linear-gradient(to right, #f4f4f5 1px, transparent 1px)",
-                        backgroundSize: `${pxPerDay}px 100%`,
-                      }}
-                    />
-
+                    <div className="absolute inset-0 w-full h-full" style={{ backgroundImage: "linear-gradient(to right, #f4f4f5 1px, transparent 1px)", backgroundSize: `${pxPerDay}px 100%` }} />
                     {milestones.map((m) => (
-                      <div
-                        key={m.id}
-                        className={`absolute top-2 px-2 py-0.5 rounded text-[9px] font-bold text-white shadow-sm transform -translate-x-1/2 ${m.color}`}
-                        style={{ left: getLeft(m.date) }}
-                      >
+                      <div key={m.id} className={`absolute top-2 px-2 py-0.5 rounded text-[9px] font-bold text-white shadow-sm transform -translate-x-1/2 ${m.color}`} style={{ left: getLeft(m.date) }}>
                         {m.title}
                       </div>
                     ))}
@@ -718,56 +530,27 @@ export default function TasksViewport() {
                 </div>
 
                 <div className="relative">
-                  <div
-                    className="absolute inset-0 pointer-events-none"
-                    style={{
-                      left: 208,
-                      width: timelineWidth,
-                      backgroundImage: "linear-gradient(to right, #f4f4f5 1px, transparent 1px)",
-                      backgroundSize: `${pxPerDay}px 100%`,
-                    }}
-                  />
-
-                  {lanesPacked.map(({ lane, packed, rowsCount }) => {
-                    return (
-                      <div key={lane.id} className="flex border-b border-zinc-100 hover:bg-zinc-50/40 relative">
-                        <div className="w-52 shrink-0 p-4 border-r border-zinc-100 bg-white sticky left-0 z-10">
-                          <div className="text-sm font-semibold text-zinc-900">{lane.title}</div>
-                          <div className="text-xs text-zinc-500 mt-0.5">{lane.group}</div>
-                        </div>
-
-                        <div className="relative py-4" style={{ height: Math.max(80, rowsCount * 34 + 32) }}>
-                          {packed.map((t) => (
-                            <div
-                              key={t.id}
-                              className={`absolute h-[26px] rounded-lg border border-white/20 shadow-sm flex items-center px-2.5 hover:brightness-110 hover:shadow-md hover:z-20 hover:scale-[1.02] transition-all cursor-pointer overflow-hidden ${
-                                (STATUS[t.status] || STATUS.todo).bar
-                              }`}
-                              style={{
-                                left: getLeft(t.start),
-                                top: t.row * 32,
-                                width: getWidth(t.start, t.end),
-                              }}
-                              title={`${t.title} (${t.progress}%)`}
-                            >
-                              <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent" />
-                              <div
-                                className="absolute inset-0 bg-black/10"
-                                style={{ width: `${100 - t.progress}%`, left: `${t.progress}%` }}
-                              />
-                              <span className="relative z-10 text-[11px] font-medium text-white truncate drop-shadow-sm">
-                                {t.title}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
+                  <div className="absolute inset-0 pointer-events-none" style={{ left: 208, width: timelineWidth, backgroundImage: "linear-gradient(to right, #f4f4f5 1px, transparent 1px)", backgroundSize: `${pxPerDay}px 100%` }} />
+                  {lanesPacked.map(({ lane, packed, rowsCount }) => (
+                    <div key={lane.id} className="flex border-b border-zinc-100 hover:bg-zinc-50/40 relative">
+                      <div className="w-52 shrink-0 p-4 border-r border-zinc-100 bg-white sticky left-0 z-10">
+                        <div className="text-sm font-semibold text-zinc-900">{lane.title}</div>
+                        <div className="text-xs text-zinc-500 mt-0.5">{lane.group}</div>
                       </div>
-                    );
-                  })}
+                      <div className="relative py-4" style={{ height: Math.max(80, rowsCount * 34 + 32) }}>
+                        {packed.map((t) => (
+                          <div key={t.id} className={`absolute h-[26px] rounded-lg border border-white/20 shadow-sm flex items-center px-2.5 hover:brightness-110 hover:shadow-md hover:z-20 hover:scale-[1.02] transition-all cursor-pointer overflow-hidden ${(STATUS[t.status] || STATUS.todo).bar}`} style={{ left: getLeft(t.start), top: t.row * 32, width: getWidth(t.start, t.end) }} title={`${t.title} (${t.progress}%)`}>
+                            <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent" />
+                            <div className="absolute inset-0 bg-black/10" style={{ width: `${100 - t.progress}%`, left: `${t.progress}%` }} />
+                            <span className="relative z-10 text-[11px] font-medium text-white truncate drop-shadow-sm">{t.title}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
-
           </div>
         </div>
       </div>
@@ -920,13 +703,10 @@ function uid(prefix = "id") {
 }
 
 export function DFMEAProvider({ children }) {
-  // --- Navigation (global app state)
   const [activeTab, setActiveTab] = useState(requirementsJson?.tabId || "requirements");
 
-  // --- Requirements (loaded from JSON, editable in-memory)
   const [requirementsData, setRequirementsData] = useState(requirementsJson);
 
-  // --- Tasks (loaded from JSON, editable in-memory)
   const [tasksData, setTasksData] = useState(tasksJson);
 
   // --- Workflows placeholder (in-memory only)
@@ -936,13 +716,46 @@ export function DFMEAProvider({ children }) {
   const updateRequirement = useCallback((id, patch) => {
     setRequirementsData((prev) => {
       const reqs = prev?.content?.requirements || [];
-      const next = reqs.map((r) => (r.id === id ? { ...r, ...patch } : r));
       return {
         ...prev,
-        content: { ...prev.content, requirements: next },
+        content: { ...prev.content, requirements: reqs.map((r) => (r.id === id ? { ...r, ...patch } : r)) },
         meta: { ...(prev.meta || {}), edited: "Just now" },
       };
     });
+  }, []);
+
+  // ✅ TASKS: CRUD
+  const replaceTasks = useCallback((nextTasks) => {
+    setTasksData((prev) => ({
+      ...prev,
+      tasks: nextTasks,
+      meta: { ...(prev.meta || {}), edited: "Just now" },
+    }));
+  }, []);
+
+  const createTask = useCallback((task) => {
+    setTasksData((prev) => {
+      const t = {
+        id: task?.id || uid("T"),
+        title: task?.title || "New task",
+        status: task?.status || "todo",
+        priority: task?.priority || "Med",
+        owner: task?.owner || "You",
+        start: task?.start || prev?.range?.start || "2026-01-01",
+        end: task?.end || prev?.range?.start || "2026-01-01",
+        progress: typeof task?.progress === "number" ? task.progress : 0,
+        lane: task?.lane || prev?.lanes?.[0]?.id || "elec",
+        ...task,
+      };
+
+      return {
+        ...prev,
+        tasks: [t, ...(prev.tasks || [])],
+        meta: { ...(prev.meta || {}), edited: "Just now" },
+      };
+    });
+
+    return task?.id; // optional (not used)
   }, []);
 
   const updateTask = useCallback((id, patch) => {
@@ -957,13 +770,20 @@ export function DFMEAProvider({ children }) {
     });
   }, []);
 
+  const deleteTask = useCallback((id) => {
+    setTasksData((prev) => {
+      const tasks = prev?.tasks || [];
+      return {
+        ...prev,
+        tasks: tasks.filter((t) => t.id !== id),
+        meta: { ...(prev.meta || {}), edited: "Just now" },
+      };
+    });
+  }, []);
+
   // --- Workflows placeholder actions
   const createWorkflow = useCallback(() => {
-    setWorkflows((prev) => {
-      const w = { id: uid("wf"), title: "Untitled" };
-      return [w, ...prev];
-    });
-    setSelectedWorkflowId((prev) => prev || null);
+    setWorkflows((prev) => [{ id: uid("wf"), title: "Untitled" }, ...prev]);
   }, []);
 
   const deleteWorkflow = useCallback((id) => {
@@ -971,44 +791,43 @@ export function DFMEAProvider({ children }) {
     setSelectedWorkflowId((prev) => (prev === id ? null : prev));
   }, []);
 
-  const value = useMemo(() => {
-    return {
-      // navigation
+  const value = useMemo(
+    () => ({
       activeTab,
       setActiveTab,
 
-      // requirements
       requirementsData,
       setRequirementsData,
       updateRequirement,
 
-      // tasks
       tasksData,
       setTasksData,
+      replaceTasks,
+      createTask,
       updateTask,
+      deleteTask,
 
-      // workflows placeholder
       workflows,
       selectedWorkflowId,
       setSelectedWorkflowId,
       createWorkflow,
       deleteWorkflow,
-    };
-  }, [
-    activeTab,
-    setActiveTab,
-    requirementsData,
-    setRequirementsData,
-    updateRequirement,
-    tasksData,
-    setTasksData,
-    updateTask,
-    workflows,
-    selectedWorkflowId,
-    setSelectedWorkflowId,
-    createWorkflow,
-    deleteWorkflow,
-  ]);
+    }),
+    [
+      activeTab,
+      requirementsData,
+      updateRequirement,
+      tasksData,
+      replaceTasks,
+      createTask,
+      updateTask,
+      deleteTask,
+      workflows,
+      selectedWorkflowId,
+      createWorkflow,
+      deleteWorkflow,
+    ]
+  );
 
   return <DFMEAContext.Provider value={value}>{children}</DFMEAContext.Provider>;
 }
@@ -1017,4 +836,352 @@ export function useDFMEA() {
   const ctx = useContext(DFMEAContext);
   if (!ctx) throw new Error("useDFMEA must be used inside DFMEAProvider");
   return ctx;
+}
+
+==========================================================================================
+FILE: src\data\requirements.json
+==========================================================================================
+{
+  "tabId": "requirements",
+  "title": "Requirements",
+  "meta": {
+    "visibility": "private",
+    "edited": "Just now"
+  },
+  "tasksTitle": "Tasks",
+  "tasks": [
+    { "id": "t1", "label": "Review top 3 flagged requirements", "done": false },
+    { "id": "t2", "label": "Add missing units + tolerances", "done": false },
+    { "id": "t3", "label": "Confirm owner roles", "done": true }
+  ],
+  "content": {
+    "projectName": "DFMEA Project",
+    "requirements": [
+      
+      {
+        "id": "REQ-001",
+        "text": "The ECU shall boot within 2 seconds at 9–16 V and -20°C to +70°C.",
+        "domainCategory": "Software",
+        "reqType": "Functional",
+        "priority": "High",
+        "ownerRole": "System",
+        "ownerName": "You",
+        "files": [],
+        "isComplete": true,
+        "flagged": false,
+        "aiAdvice": "—"
+      },
+
+      {
+        "id": "REQ-002",
+        "text": "The housing should be robust and durable.",
+        "domainCategory": "Mechanical",
+        "reqType": "Non-functional",
+        "priority": "Medium",
+        "ownerRole": "Mechanical",
+        "ownerName": "You",
+        "files": ["/mock/file.pdf"],
+        "isComplete": false,
+        "flagged": true,
+        "aiAdvice": "Add measurable criteria (drop height, torque spec, IP rating, temperature)."
+      },
+
+      {
+        "id": "REQ-003",
+        "text": "The system shall limit inrush current to 1.2 A max during startup at 12 V.",
+        "domainCategory": "Electrical",
+        "reqType": "Functional",
+        "priority": "High",
+        "ownerRole": "Electrical",
+        "ownerName": "You",
+        "files": [],
+        "isComplete": true,
+        "flagged": false,
+        "aiAdvice": "—"
+      }
+    ]
+  }
+}
+
+==========================================================================================
+FILE: src\data\tasks.json
+==========================================================================================
+{
+  "tabId": "tasks",
+  "title": "Tasks",
+  "meta": {
+    "visibility": "private",
+    "edited": "Just now"
+  },
+  "project": "DFMEA Project",
+  "range": { "start": "2026-01-15", "end": "2026-02-15" },
+  "lanes": [
+    { "id": "elec", "title": "Electrical", "group": "Hardware" },
+    { "id": "soft", "title": "Software", "group": "Dev" },
+    { "id": "mech", "title": "Mechanical", "group": "Mech" }
+  ],
+  "milestones": [
+    { "id": "m1", "date": "2026-01-20", "title": "Kickoff", "color": "bg-emerald-500" },
+    { "id": "m2", "date": "2026-02-05", "title": "Review", "color": "bg-blue-500" }
+  ],
+  "tasks": [
+    { "id": "T1", "title": "Review reqs", "status": "todo", "priority": "High", "owner": "Alice", "start": "2026-01-20", "end": "2026-01-25", "progress": 0, "lane": "elec" },
+    { "id": "T2", "title": "Add units", "status": "active", "priority": "Med", "owner": "Bob", "start": "2026-01-18", "end": "2026-01-22", "progress": 60, "lane": "soft" },
+    { "id": "T3", "title": "Confirm roles", "status": "done", "priority": "Low", "owner": "Carol", "start": "2026-01-15", "end": "2026-01-20", "progress": 100, "lane": "mech" },
+    { "id": "T4", "title": "Specs update", "status": "blocked", "priority": "High", "owner": "Dave", "start": "2026-01-22", "end": "2026-01-28", "progress": 20, "lane": "elec" },
+    { "id": "T5", "title": "Validation", "status": "todo", "priority": "Med", "owner": "Eve", "start": "2026-01-23", "end": "2026-01-30", "progress": 0, "lane": "mech" },
+    { "id": "T6", "title": "Phase 2", "status": "todo", "priority": "Low", "owner": "Dave", "start": "2026-01-24", "end": "2026-02-01", "progress": 0, "lane": "elec" }
+  ]
+}
+
+==========================================================================================
+FILE: src\hooks\useAppNavigation.js
+==========================================================================================
+import { useDFMEA } from "../contexts/DFMEAContext";
+
+export function useAppNavigation() {
+  const { activeTab, setActiveTab } = useDFMEA();
+  return { activeTab, setActiveTab };
+}
+
+==========================================================================================
+FILE: src\hooks\useDockHeightPadding.js
+==========================================================================================
+import { useLayoutEffect, useRef, useState } from "react";
+
+export function useDockHeightPadding() {
+  const dockRef = useRef(null);
+  const [dockHeight, setDockHeight] = useState(0);
+
+  useLayoutEffect(() => {
+    if (!dockRef.current) return;
+    const ro = new ResizeObserver((entries) => {
+      setDockHeight(Math.ceil(entries[0].contentRect.height));
+    });
+    ro.observe(dockRef.current);
+    return () => ro.disconnect();
+  }, []);
+
+  return { dockRef, dockHeight };
+}
+
+==========================================================================================
+FILE: src\hooks\useRequirementGrouping.js
+==========================================================================================
+import { useMemo } from "react";
+
+export function useRequirementGrouping(requirements, { frozenFn, filter = "all" }) {
+  return useMemo(() => {
+    const map = { Software: [], Electrical: [], Mechanical: [] };
+
+    requirements.forEach((r) => {
+      const key = r.domainCategory || "Software";
+      if (!map[key]) map[key] = [];
+      map[key].push(r);
+    });
+
+    const meta = Object.keys(map).map((d) => ({
+      d,
+      unfrozen: map[d].filter((x) => !frozenFn(x)).length,
+      flagged: map[d].filter((x) => x.flagged).length,
+      total: map[d].length,
+    }));
+
+    const order = meta
+      .sort((a, b) => b.unfrozen - a.unfrozen || b.flagged - a.flagged || b.total - a.total)
+      .map((x) => x.d);
+
+    order.forEach((d) => {
+      map[d].sort(
+        (a, b) =>
+          (frozenFn(a) ? 0 : 1) - (frozenFn(b) ? 0 : 1) ||
+          (b.flagged ? 1 : 0) - (a.flagged ? 1 : 0)
+      );
+    });
+
+    const filtered = {};
+    order.forEach((d) => {
+      filtered[d] =
+        filter === "all"
+          ? map[d]
+          : filter === "frozen"
+          ? map[d].filter(frozenFn)
+          : map[d].filter((r) => !frozenFn(r));
+    });
+
+    return { buckets: { map, order }, filtered };
+  }, [requirements, frozenFn, filter]);
+}
+
+==========================================================================================
+FILE: src\hooks\useRequirements.js
+==========================================================================================
+import { useMemo } from "react";
+import { useDFMEA } from "../contexts/DFMEAContext";
+
+export function useRequirements() {
+  const { requirementsData, updateRequirement } = useDFMEA();
+
+  const projectName = requirementsData?.content?.projectName ?? "DFMEA Project";
+  const requirements = requirementsData?.content?.requirements ?? [];
+  const meta = requirementsData?.meta ?? {};
+
+  const frozen = (r) => Boolean(r?.isComplete && !r?.flagged);
+
+  const stats = useMemo(() => {
+    const total = requirements.length;
+    const frozenCount = requirements.filter(frozen).length;
+    const flaggedCount = requirements.filter((r) => r.flagged).length;
+    return {
+      total,
+      frozen: frozenCount,
+      flagged: flaggedCount,
+      unfrozen: total - frozenCount,
+    };
+  }, [requirements]);
+
+  return {
+    requirementsData,
+    requirements,
+    projectName,
+    meta,
+    frozen,
+    stats,
+    updateRequirement,
+  };
+}
+
+==========================================================================================
+FILE: src\hooks\useTaskFiltering.js
+==========================================================================================
+import { useMemo } from "react";
+
+export function useTaskFiltering(tasks, { q = "", statusFilter = "all" }) {
+  return useMemo(() => {
+    const query = q.trim().toLowerCase();
+
+    const filtered = tasks.filter((t) => {
+      const statusOk = statusFilter === "all" || t.status === statusFilter;
+      const textOk =
+        !query ||
+        t.title.toLowerCase().includes(query) ||
+        t.id.toLowerCase().includes(query);
+      return statusOk && textOk;
+    });
+
+    return { filtered, count: filtered.length };
+  }, [tasks, q, statusFilter]);
+}
+
+==========================================================================================
+FILE: src\hooks\useTasks.js
+==========================================================================================
+import { useMemo } from "react";
+import { useDFMEA } from "../contexts/DFMEAContext";
+
+export function useTasks() {
+  const { tasksData, createTask, updateTask, deleteTask, replaceTasks } = useDFMEA();
+
+  const tasks = tasksData?.tasks ?? [];
+  const lanes = tasksData?.lanes ?? [];
+  const milestones = tasksData?.milestones ?? [];
+  const range = tasksData?.range ?? { start: "2026-01-01", end: "2026-02-01" };
+  const project = tasksData?.project ?? "DFMEA Project";
+  const meta = tasksData?.meta ?? {};
+
+  const stats = useMemo(
+    () => ({
+      done: tasks.filter((t) => t.status === "done").length,
+      blocked: tasks.filter((t) => t.status === "blocked").length,
+      active: tasks.filter((t) => t.status === "active").length,
+    }),
+    [tasks]
+  );
+
+  return {
+    tasksData,
+    tasks,
+    lanes,
+    milestones,
+    range,
+    project,
+    meta,
+    stats,
+
+    // ✅ CRUD
+    createTask,
+    updateTask,
+    deleteTask,
+    replaceTasks,
+  };
+}
+
+==========================================================================================
+FILE: src\hooks\useTimelineLayout.js
+==========================================================================================
+import { useMemo } from "react";
+
+const msDay = 86400000;
+
+function diff(a, b) {
+  return Math.round((new Date(b) - new Date(a)) / msDay);
+}
+
+export function useTimelineLayout({ range, pxPerDay = 40, lanes, tasks }) {
+  return useMemo(() => {
+    const dayCount = Math.max(1, diff(range.start, range.end));
+    const timelineWidth = dayCount * pxPerDay;
+
+    const getLeft = (date) => diff(range.start, date) * pxPerDay;
+    const getWidth = (start, end) => Math.max(pxPerDay, diff(start, end) * pxPerDay) - 4;
+
+    const packLaneTasks = (laneId, laneTasks) => {
+      const sorted = [...laneTasks].sort((a, b) => new Date(a.start) - new Date(b.start));
+      const rows = [];
+
+      const packed = sorted.map((t) => {
+        let rowIndex = rows.findIndex((end) => new Date(end) < new Date(t.start));
+        if (rowIndex === -1) {
+          rowIndex = rows.length;
+          rows.push(t.end);
+        } else {
+          rows[rowIndex] = t.end;
+        }
+        return { ...t, row: rowIndex };
+      });
+
+      return { packed, rowsCount: rows.length };
+    };
+
+    const lanesPacked = lanes.map((lane) => {
+      const laneTasks = tasks.filter((t) => t.lane === lane.id);
+      const { packed, rowsCount } = packLaneTasks(lane.id, laneTasks);
+      return { lane, packed, rowsCount };
+    });
+
+    return { dayCount, timelineWidth, getLeft, getWidth, lanesPacked };
+  }, [range.start, range.end, pxPerDay, lanes, tasks]);
+}
+
+==========================================================================================
+FILE: src\hooks\useWorkflows.js
+==========================================================================================
+import { useDFMEA } from "../contexts/DFMEAContext";
+
+export function useWorkflows() {
+  const {
+    workflows,
+    selectedWorkflowId,
+    setSelectedWorkflowId,
+    createWorkflow,
+    deleteWorkflow,
+  } = useDFMEA();
+
+  return {
+    workflows,
+    selectedWorkflowId,
+    setSelectedWorkflowId,
+    createWorkflow,
+    deleteWorkflow,
+  };
 }
