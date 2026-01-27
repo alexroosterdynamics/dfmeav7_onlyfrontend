@@ -24,17 +24,15 @@ export default function TopNav() {
         <div className="hidden lg:flex items-center gap-1 bg-white rounded-xl p-1 border border-zinc-200/80">
           <button
             onClick={() => setActiveTab("requirements")}
-            className={`text-[13px] px-3 py-1.5 rounded-lg font-medium ${
-              activeTab === "requirements" ? "text-white bg-zinc-900" : "text-zinc-700 hover:bg-zinc-100"
-            }`}
+            className={`text-[13px] px-3 py-1.5 rounded-lg font-medium ${activeTab === "requirements" ? "text-white bg-zinc-900" : "text-zinc-700 hover:bg-zinc-100"
+              }`}
           >
             Requirements
           </button>
           <button
             onClick={() => setActiveTab("tasks")}
-            className={`text-[13px] px-3 py-1.5 rounded-lg font-medium ${
-              activeTab === "tasks" ? "text-white bg-zinc-900" : "text-zinc-700 hover:bg-zinc-100"
-            }`}
+            className={`text-[13px] px-3 py-1.5 rounded-lg font-medium ${activeTab === "tasks" ? "text-white bg-zinc-900" : "text-zinc-700 hover:bg-zinc-100"
+              }`}
           >
             Tasks
           </button>

@@ -330,7 +330,7 @@ Suggested future upgrade:
 * Swap context internals to call an API later
 * Add optimistic updates + persistence
 
----
+---b
 
 ## Future Extensions
 
